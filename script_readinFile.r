@@ -20,7 +20,7 @@ rm(fileName, tmpM, l1)
 
 # check if the file was read in correctly
 dim(myData)
-myData[1:4,1:3]
+head(myData)
 
 # myData is a numeric matrix object
 ####################################################
