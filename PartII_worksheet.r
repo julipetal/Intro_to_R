@@ -1,25 +1,25 @@
 getwd()
 setwd("C:/...")
-fileName = "Data_OldvsYoung.txt"
+
+
+dat = read.csv("Data_OldvsYoung.txt", sep="\t", header=TRUE)
+head(dat)
+hist(dat)
+rownames(dat) = dat[,1]
+dat[1:3,1:3]
+dat1 = dat[,-1]
+dat1[1:3,1:3]
+hist(dat1)
+myData = as.matrix(dat1) 
+hist(myData)
  
-l1 = scan(fileName, sep = "\t", what = "", nlines = 1)
-tmpM = matrix(scan(fileName, what="", sep="\t", skip=1), ncol=length(l1), byrow = TRUE)
-myData= matrix(as.numeric(tmpM[,-1]), ncol=length(l1) -1, byrow=FALSE)
-colnames(myData) = l1[-1]
-rownames(myData) = tmpM[,1]
- 
-# remove variables (objects) you no longer need
-rm(fileName, tmpM, l1)
- 
-# check if the file was read in correctly
-dim(myData)
-myData[1:4,1:3]
+# write a function for histogram 
 
 # for loop
 # calculating the average of each row, here gene values
-for(i in 1:dim(myData)[1]){
+for(i in 1:nrow(myData)){
 	averageV = mean(myData[i,])
-	print(x)
+	print(averageV)
 }
 
 averageV = NULL 
@@ -42,6 +42,7 @@ colnames(myData)
 group = c(rep("Old",18), rep("Young",19))
 group
 
+library(ggplot2)
 qplot(myData[1,], myData[2,], colour=group, xlab="Gene1", ylab="Gene2")
 qplot(myData[1,], geom="density", colour=group)
 qplot(myData[1,], geom="density", fill=group)
@@ -49,77 +50,55 @@ qplot(myData[1,], geom="histogram", fill=group)
 qplot(myData[1,], geom="histogram", fill=group, binwidth=100)
 qplot(myData[1,], geom="histogram", fill=group, binwidth=100, xlab=rownames(myData)[1])
  
-# plotting two histograms side by side
-MIN = round(min(as.vector(myData))-0.5,digits=0)
-MAX = round(max(as.vector(myData))+0.5,digits=0)
-split.screen(c(1,1))
-plot(myData[1,], ylim=c(MIN,MAX), xlab="Measurement", ylab="Intensity", type="l", lwd=2, col=1)
-for(i in 2:length(myData[,1])){
-     screen(1, new=FALSE)
-     plot(myData[i,], ylim=c(MIN,MAX), type="l", lwd=2, col="blue", xaxt="n", yaxt="n", ylab="", xlab="", main="", bty="n")
-     }
-screen(1, new=FALSE)
-plot(rep(500, 37), ylim=c(MIN,MAX), type="l", lwd=2, col="red", xaxt="n", yaxt="n", ylab="", xlab="", main="", bty="n")
-close.screen(all=TRUE)
- 
+ # plotting multiple lines in one graph
+ MIN = min(myData)
+ MAX = max(myData)
+ numRow = nrow(myData)
+ numCol = ncol(myData)
+ colorScheme = rainbow(numRow)
+
+ plot(c(1,numCol), c(MIN,MAX), cex = 0, xlab = "Condition", ylab = "Measurement")
+ for( i in 1:numRow){
+		points(1:numCol, myData[i,], col = colorScheme[i])
+		lines(1:numCol, myData[i,], col = colorScheme[i])
+
+ }
 #############################################################################################
-# read in AA Dataset
-# working with mixed datasets
-# cannot use our script for reading in files because this datafile has numeric and categorical data
- 
-fileName="Data_AA.txt"
-l1 = scan(fileName, sep = "\t", what = "", nlines = 1)
-tmpM = matrix(scan(fileName, what="", sep="\t", skip=1), ncol=length(l1), byrow = TRUE)
-tmpM[1:3,1:3]
-airline = tmpM
-colnames(airline) = l1
-airline[1:4,1:4]
-colnames(airline)
-dim(airline)
+# weather data
+W = read.csv("Data_weather.txt", sep="\t", header=TRUE)
 
-# How many flights were canceled
-x = which(airline[,13]==1)
-length(x)
-x[1:4]
-airline[3,]
-mean(airline[,12])
-mean(airline[,12],na.rm=TRUE)
-mean(as.numeric(airline[,12]))
-mean(as.numeric(airline[,12]), na.rm=TRUE)
+library(latticeExtra)
+Temperature <- xyplot(Temp ~ TimePt, W, type = "l" , lwd=2)
+Humidity <- xyplot(Humid ~ TimePt, W, type = "l" , lwd=2)
+doubleYScale(Temperature, Humidity, add.ylab2 = TRUE)	
 
-plot(as.numeric(airline[,11]),as.numeric(airline[,12]))
-abline(a=0:1400, b=0:1400, col="red", lwd=2)
-abline(a=1:1400, b=1:1400, col="green", lwd=2)
-abline(a=-3:1400, b=-3:1400, col="blue", lwd=2)
+#############################################################################################
+# weather data	
+airline = read.csv("Data_AA.txt", sep="\t", header=TRUE)
 
 # number of departure airports
 length(unique(airline[,8]))
 # number of arrival airports
 length(unique(airline[,9]))
-x = unique(airline[,9])
-x[1:10]
-dim(airline)
-xx = which("DFW"== airline[,8])
-length(xx)
-xx[1:3]
-DEFsub = airline[xx,]
-yy = which("DFW"== airline[,8])
-length(yy)
-yy = which("MIA"== airline[,8])
-length(yy)
-MIAsub = airline[yy,]
-newA = rbind(DEFsub,MIAsub)
+
+index = which(airline[,8] == "DFW")
+DFWsub = airline[index,]
+
+index = which(airline[,8] == "MIA")
+MIAsub = airline[index,]
+
+newA = rbind(DFWsub,MIAsub)
 newA[1:3,c(8,10,11)]
-newA[1:3,c(8,11,12)]
 
 group = newA[,8]
 x = as.numeric(newA[,11])
 y = as.numeric(newA[,12])
 
+
 qplot(x, y, colour=group, xlab="Depart Delay", ylab="Arrival Delay")
-# abline function does not work correctly within gplot graphs
-# instead have to use gplots functions
-p  = qplot(x, y, colour=group, xlab="Depart Delay", ylab="Arrival Delay") + geom_point()
+
+p  = qplot(x, y, colour=group, xlab="Depart Delay", ylab="Arrival Delay") + 
+		geom_point()
 p
 # adding identity
 p + geom_abline(intercept = 0, slope = 1)
